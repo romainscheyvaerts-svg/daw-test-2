@@ -1,18 +1,6 @@
 
 import { Track, Clip, PluginInstance, TrackType, TrackSend, AutomationLane } from '../types';
-import { ReverbNode } from '../plugins/ReverbPlugin';
-import { SyncDelayNode } from '../plugins/DelayPlugin';
-import { ChorusNode } from '../plugins/ChorusPlugin';
-import { FlangerNode } from '../plugins/FlangerPlugin';
-import { VocalDoublerNode } from '../plugins/DoublerPlugin';
-import { StereoSpreaderNode } from '../plugins/StereoSpreaderPlugin';
-import { AutoTuneNode } from '../plugins/AutoTunePlugin';
-import { CompressorNode } from '../plugins/CompressorPlugin';
-import { DeEsserNode } from '../plugins/DeEsserPlugin';
-import { DenoiserNode } from '../plugins/DenoiserPlugin';
-import { ProEQ12Node } from '../plugins/ProEQ12Plugin';
-import { VocalSaturatorNode } from '../plugins/VocalSaturatorPlugin';
-import { MasterSyncNode } from '../plugins/MasterSyncPlugin';
+// Internal FX plugins removed - only VST3 and instrument plugins supported
 import { Synthesizer } from './Synthesizer';
 import { AudioSampler } from './AudioSampler';
 import { DrumSamplerNode } from './DrumSamplerNode';
@@ -223,31 +211,8 @@ export class AudioEngine {
   }
 
   private createPluginNode(plugin: PluginInstance) {
-    if (!this.ctx) return null;
-    let node: any = null;
-    try {
-      switch(plugin.type) {
-        case 'REVERB': node = new ReverbNode(this.ctx); break;
-        case 'DELAY': node = new SyncDelayNode(this.ctx, 120); break;
-        case 'COMPRESSOR': node = new CompressorNode(this.ctx); break;
-        case 'PROEQ12': node = new ProEQ12Node(this.ctx, plugin.params as any); break;
-        case 'AUTOTUNE': node = new AutoTuneNode(this.ctx); break;
-        case 'CHORUS': node = new ChorusNode(this.ctx); break;
-        case 'FLANGER': node = new FlangerNode(this.ctx); break;
-        case 'DOUBLER': node = new VocalDoublerNode(this.ctx); break;
-        case 'STEREOSPREADER': node = new StereoSpreaderNode(this.ctx); break;
-        case 'DEESSER': node = new DeEsserNode(this.ctx); break;
-        case 'DENOISER': node = new DenoiserNode(this.ctx); break;
-        case 'VOCALSATURATOR': node = new VocalSaturatorNode(this.ctx); break;
-        case 'MASTERSYNC': node = new MasterSyncNode(this.ctx); break;
-      }
-      if (node) {
-          node.updateParams(plugin.params);
-          return { input: node.input, output: node.output, node };
-      }
-    } catch(e) {
-      console.error(`Failed to create plugin ${plugin.type}`, e);
-    }
+    // Internal FX plugins removed - only VST3 plugins are handled externally via Nova Bridge
+    // Instrument plugins (SAMPLER, DRUM_SAMPLER, MELODIC_SAMPLER, DRUM_RACK_UI) are handled in updateTrack
     return null;
   }
 

@@ -72,25 +72,12 @@ export interface PendingUpload {
 
 export type AuthStage = 'LOGIN' | 'REGISTER' | 'VERIFY_EMAIL' | 'FORGOT_PASSWORD';
 
-// FIXED: Restored full list of internal plugins to match AudioEngine and UI requirements
-export type PluginType = 
-  | 'REVERB' 
-  | 'DELAY' 
-  | 'CHORUS' 
-  | 'FLANGER' 
-  | 'DOUBLER' 
-  | 'STEREOSPREADER' 
-  | 'COMPRESSOR' 
-  | 'AUTOTUNE' 
-  | 'DEESSER' 
-  | 'DENOISER' 
-  | 'PROEQ12' 
-  | 'VOCALSATURATOR' 
-  | 'MASTERSYNC' 
-  | 'VST3' 
-  | 'SAMPLER' 
-  | 'DRUM_SAMPLER' 
-  | 'MELODIC_SAMPLER' 
+// Only VST3 and instrument plugins - internal FX removed
+export type PluginType =
+  | 'VST3'
+  | 'SAMPLER'
+  | 'DRUM_SAMPLER'
+  | 'MELODIC_SAMPLER'
   | 'DRUM_RACK_UI';
 
 export interface PluginMetadata {
