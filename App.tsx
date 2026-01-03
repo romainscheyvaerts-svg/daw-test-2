@@ -913,7 +913,8 @@ export default function App() {
     }
   };
 
-  if (!user) { return <AuthScreen onAuthenticated={(u) => { setUser(u); setIsAuthOpen(false); }} />; }
+  // TEMPORAIRE : Désactiver l'auth pour debug
+  // if (!user) { return <AuthScreen onAuthenticated={(u) => { setUser(u); setIsAuthOpen(false); }} />; }
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden relative transition-colors duration-300" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-primary)', cursor: isResizingBrowser ? 'col-resize' : 'default' }}>
