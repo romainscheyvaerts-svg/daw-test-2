@@ -163,7 +163,16 @@ const useUndoRedo = (initialState: DAWState) => {
 };
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null); 
+  // Mock user pour debug (désactive l'écran de connexion)
+  const mockUser: User = {
+    id: 'debug-user',
+    email: 'debug@daw.com',
+    username: 'Debug User',
+    isVerified: true,
+    plan: 'PRO',
+    owned_instruments: []
+  };
+  const [user, setUser] = useState<User | null>(mockUser);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [saveState, setSaveState] = useState<{ isSaving: boolean; progress: number; message: string }>({ isSaving: false, progress: 0, message: '' });
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
