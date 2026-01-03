@@ -225,12 +225,12 @@ export interface AIChatMessage {
   executedAction?: string;
 }
 
-export type AIActionType = 
-  | 'UPDATE_PLUGIN' 
-  | 'UPDATE_TRACK' 
+export type AIActionType =
+  | 'UPDATE_PLUGIN'
+  | 'UPDATE_TRACK'
   | 'ADD_TRACK'
-  | 'CREATE_TRACK' 
-  | 'DELETE_TRACK' 
+  | 'CREATE_TRACK'
+  | 'DELETE_TRACK'
   | 'SET_VOLUME'
   | 'SET_PAN'
   | 'MUTE_TRACK'
@@ -238,10 +238,11 @@ export type AIActionType =
   | 'RENAME_TRACK'
   | 'OPEN_PLUGIN'
   | 'CLOSE_PLUGIN'
+  | 'REMOVE_PLUGIN'
   | 'SET_PLUGIN_PARAM'
   | 'BYPASS_PLUGIN'
   | 'SET_SEND_LEVEL'
-  | 'PREPARE_REC' 
+  | 'PREPARE_REC'
   | 'CLEAN_MIX'
   | 'RESET_FX'
   | 'NORMALIZE_CLIP'
