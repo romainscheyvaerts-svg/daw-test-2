@@ -721,7 +721,197 @@ export default function App() {
     };
   }, [handleUpdateBpm, handleUpdateTrack, handleTogglePlay, handleStop, handleSeek, handleDuplicateTrack, handleCreateTrack, handleDeleteTrack, handleToggleBypass, handleLoadDrumSample, handleEditClip]);
 
-  const executeAIAction = (a: AIAction) => { /* ... */ };
+  const executeAIAction = (a: AIAction) => {
+    console.log('[AI_ACTION]', a.action, a.payload);
+
+    try {
+      switch (a.action) {
+        // ===== TRANSPORT CONTROLS =====
+        case 'PLAY':
+          handleTogglePlay();
+          break;
+
+        case 'STOP':
+          handleStop();
+          break;
+
+        case 'SEEK':
+          if (a.payload.time !== undefined) handleSeek(a.payload.time);
+          break;
+
+        case 'SET_BPM':
+          if (a.payload.bpm) handleUpdateBpm(a.payload.bpm);
+          break;
+
+        case 'SET_LOOP':
+          if (a.payload.start !== undefined && a.payload.end !== undefined) {
+            setState(prev => ({
+              ...prev,
+              loopStart: a.payload.start,
+              loopEnd: a.payload.end,
+              isLoopActive: a.payload.active !== undefined ? a.payload.active : true
+            }));
+          }
+          break;
+
+        // ===== TRACK MANAGEMENT =====
+        case 'MUTE_TRACK':
+          if (a.payload.trackId) {
+            const track = stateRef.current.tracks.find(t => t.id === a.payload.trackId);
+            if (track) handleUpdateTrack({ ...track, isMuted: a.payload.isMuted ?? !track.isMuted });
+          }
+          break;
+
+        case 'SOLO_TRACK':
+          if (a.payload.trackId) {
+            const track = stateRef.current.tracks.find(t => t.id === a.payload.trackId);
+            if (track) handleUpdateTrack({ ...track, isSolo: a.payload.isSolo ?? !track.isSolo });
+          }
+          break;
+
+        case 'SET_VOLUME':
+          if (a.payload.trackId && a.payload.volume !== undefined) {
+            const track = stateRef.current.tracks.find(t => t.id === a.payload.trackId);
+            if (track) handleUpdateTrack({ ...track, volume: a.payload.volume });
+          }
+          break;
+
+        case 'SET_PAN':
+          if (a.payload.trackId && a.payload.pan !== undefined) {
+            const track = stateRef.current.tracks.find(t => t.id === a.payload.trackId);
+            if (track) handleUpdateTrack({ ...track, pan: a.payload.pan });
+          }
+          break;
+
+        case 'RENAME_TRACK':
+          if (a.payload.trackId && a.payload.name) {
+            const track = stateRef.current.tracks.find(t => t.id === a.payload.trackId);
+            if (track) handleUpdateTrack({ ...track, name: a.payload.name });
+          }
+          break;
+
+        case 'DUPLICATE_TRACK':
+          if (a.payload.trackId) handleDuplicateTrack(a.payload.trackId);
+          break;
+
+        case 'DELETE_TRACK':
+          if (a.payload.trackId) handleDeleteTrack(a.payload.trackId);
+          break;
+
+        case 'ADD_TRACK':
+        case 'CREATE_TRACK':
+          if (a.payload.type) {
+            handleCreateTrack(a.payload.type as TrackType, a.payload.name);
+          }
+          break;
+
+        // ===== PLUGIN MANAGEMENT =====
+        case 'OPEN_PLUGIN':
+          if (a.payload.trackId && a.payload.type) {
+            const track = stateRef.current.tracks.find(t => t.id === a.payload.trackId);
+            if (track) {
+              // Add plugin to track
+              handleAddPluginFromContext(a.payload.trackId, a.payload.type as PluginType);
+
+              // If params are provided, update them after a short delay (to ensure plugin is created)
+              if (a.payload.params) {
+                setTimeout(() => {
+                  const updatedTrack = stateRef.current.tracks.find(t => t.id === a.payload.trackId);
+                  const plugin = updatedTrack?.plugins[updatedTrack.plugins.length - 1];
+                  if (plugin) {
+                    handleUpdatePluginParams(a.payload.trackId, plugin.id, a.payload.params);
+                  }
+                }, 100);
+              }
+            }
+          }
+          break;
+
+        case 'CLOSE_PLUGIN':
+          setActivePlugin(null);
+          break;
+
+        case 'BYPASS_PLUGIN':
+          if (a.payload.trackId && a.payload.pluginId) {
+            handleToggleBypass(a.payload.trackId, a.payload.pluginId);
+          }
+          break;
+
+        case 'SET_PLUGIN_PARAM':
+          if (a.payload.trackId && a.payload.pluginId && a.payload.param !== undefined && a.payload.value !== undefined) {
+            handleUpdatePluginParams(a.payload.trackId, a.payload.pluginId, { [a.payload.param]: a.payload.value });
+          }
+          break;
+
+        case 'UPDATE_PLUGIN':
+          if (a.payload.trackId && a.payload.pluginId && a.payload.params) {
+            handleUpdatePluginParams(a.payload.trackId, a.payload.pluginId, a.payload.params);
+          }
+          break;
+
+        // ===== CLIP OPERATIONS =====
+        case 'NORMALIZE_CLIP':
+          if (a.payload.trackId && a.payload.clipId) {
+            handleEditClip(a.payload.trackId, a.payload.clipId, 'NORMALIZE');
+          }
+          break;
+
+        case 'SPLIT_CLIP':
+          if (a.payload.trackId && a.payload.clipId && a.payload.time !== undefined) {
+            handleEditClip(a.payload.trackId, a.payload.clipId, 'SPLIT', { time: a.payload.time });
+          }
+          break;
+
+        case 'MUTE_CLIP':
+          if (a.payload.trackId && a.payload.clipId) {
+            handleEditClip(a.payload.trackId, a.payload.clipId, 'MUTE');
+          }
+          break;
+
+        // ===== SPECIAL ACTIONS =====
+        case 'RUN_MASTER_SYNC':
+        case 'ANALYZE_INSTRU':
+          // Find MasterSync plugin and trigger analysis
+          const instrumentalTrack = stateRef.current.tracks.find(t => t.id === 'instrumental');
+          if (instrumentalTrack) {
+            const masterSyncPlugin = instrumentalTrack.plugins.find(p => p.type === 'MASTERSYNC');
+            if (masterSyncPlugin) {
+              // Trigger analysis via plugin params
+              handleUpdatePluginParams(instrumentalTrack.id, masterSyncPlugin.id, { isAnalyzing: true });
+            } else {
+              // Add MasterSync plugin if not present
+              handleAddPluginFromContext('instrumental', 'MASTERSYNC');
+            }
+          }
+          break;
+
+        case 'RESET_FX':
+          // Remove all plugins from selected track
+          if (stateRef.current.selectedTrackId) {
+            const track = stateRef.current.tracks.find(t => t.id === stateRef.current.selectedTrackId);
+            if (track) {
+              track.plugins.forEach(plugin => {
+                handleRemovePlugin(track.id, plugin.id);
+              });
+            }
+          }
+          break;
+
+        case 'CLEAN_MIX':
+          // Add Denoiser to selected track
+          if (stateRef.current.selectedTrackId) {
+            handleAddPluginFromContext(stateRef.current.selectedTrackId, 'DENOISER');
+          }
+          break;
+
+        default:
+          console.warn('[AI_ACTION] Unknown action type:', a.action);
+      }
+    } catch (error) {
+      console.error('[AI_ACTION] Error executing action:', error);
+      setAiNotification(`❌ Erreur: ${error instanceof Error ? error.message : 'Action failed'}`);
+    }
+  };
 
   if (!user) { return <AuthScreen onAuthenticated={(u) => { setUser(u); setIsAuthOpen(false); }} />; }
 
